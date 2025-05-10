@@ -424,4 +424,26 @@ app.post('/delete-news', async (req, res) => {
   });
 });
 
+app.post('/send-review', async (req, res) => {
+  const {typeOrganization, region, sex, age, overview, review} = req.body
+  db.run('insert into review (typeOrganization, region, sex, age, overview, review) values (?, ?, ?, ?, ?, ?)', [typeOrganization, region, sex, age, overview, review], function(err) {
+    if (err) {
+        return res.status(500).json({message: 'Не получилось отправить отзыв'})
+    }
+    return res.status(200).json({message: 'Получилось отправить отзыв!'})
+  })
+})
+
+app.post('/reviews', async (req, res) => {
+  const id = checkToken(req.headers.authorization?.split(' ')[1], res)
+
+  if (!id) return res.status(500).json({message: 'Неправильный токен'})
+  db.all(`select * from review`, (err, row) => {
+    if (!row || err) {
+      return res.status(500).json({message: 'Не получилось запросить отзывы'})
+    }
+    res.status(200).json(row)
+  })
+})
+
 app.listen(port, () => console.log(`http://localhost:${port}`))
